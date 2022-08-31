@@ -21,8 +21,8 @@ training_set_scaled = sc.fit_transform(training_set)
 from numpy.ma.core import append
 x_train = []
 y_train = []
-for i in range(8, 84):
-  x_train.append(training_set_scaled[i-8:i, 0])
+for i in range(2, 84):
+  x_train.append(training_set_scaled[i-2:i, 0])
   y_train.append(training_set_scaled[i, 0])
 x_train, y_train = np.array(x_train), np.array(y_train)
 
@@ -43,15 +43,15 @@ regressor = Sequential()
 
 #1st Layer of LSTM
 regressor.add(LSTM(units = 40, return_sequences = True, input_shape = (x_train.shape[1], 1)))
-regressor.add(Dropout(0.1))
+regressor.add(Dropout(0.01))
 #2nd Layer of LSTM
 regressor.add(LSTM(units = 40, return_sequences = True))
 regressor.add(Dropout(0.01))
 #3rd Layer of LSTM
-regressor.add(LSTM(units = 50, return_sequences = True))
+regressor.add(LSTM(units = 40, return_sequences = True))
 regressor.add(Dropout(0.01))
 #4th Layer of LSTM
-regressor.add(LSTM(units = 50))
+regressor.add(LSTM(units = 40))
 regressor.add(Dropout(0.01))
 
 #Output Layer
@@ -61,30 +61,30 @@ regressor.add(Dense(units = 1))
 regressor.compile(optimizer = 'adam', loss = 'mean_squared_error')
 
 #Fitting the RNN to the Training Set
-regressor.fit(x_train, y_train, epochs = 100, batch_size = 24)
+regressor.fit(x_train, y_train, epochs = 100, batch_size = 12)
 
 #Making the predictions and visualization
 #Real Gen Data
 dataset_test = pd.read_csv('Gen_Data_Train.csv')
-real_stock_price = dataset_test.iloc[:, 6:7].values
+real_energy = dataset_test.iloc[:, 6:7].values
 
 #Predict the Gen Data
 dataset_total= pd.concat((dataset_train['all solar thousand megawatthours'], dataset_test['all solar thousand megawatthours']), axis = 0)
-inputs = dataset_total[len(dataset_total) - len(dataset_test) - 8:].values
+inputs = dataset_total[len(dataset_total) - len(dataset_test) - 2:].values
 inputs = inputs.reshape(-1, 1)
 inputs = sc.transform(inputs)
 x_test = []
-for i in range(8, 17):
-  x_test.append(inputs[i-8:i, 0])
+for i in range(2, 86):
+  x_test.append(inputs[i-2:i, 0])
 x_test = np.array(x_test)
 x_test = np.reshape(x_test,(x_test.shape[0], x_test.shape[1], 1))
-predicted_stock_price = regressor.predict(x_test)
-predicted_stock_price = sc.inverse_transform(predicted_stock_price)
+predicted_energy = regressor.predict(x_test)
+predicted_energy = sc.inverse_transform(predicted_energy)
 
 #Visualising the results
 
-plt.plot(real_stock_price, color = 'red', label = 'Real all solar thousand megawatthours')
-plt.plot(predicted_stock_price, color = 'blue', label = 'Predicted all solar thousand megawatthours')
+plt.plot(real_energy, color = 'red', label = 'Real all solar thousand megawatthours')
+plt.plot(predicted_energy, color = 'blue', label = 'Predicted all solar thousand megawatthours')
 plt.title('all solar thousand megawatthours')
 plt.xlabel('Time')
 plt.ylabel('Solar 1000 Megawatthours')
